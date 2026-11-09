@@ -2,8 +2,8 @@
 const SENHA_MESTRE = "1234";
 
 // --- CONFIGURAÇÃO DO SUPABASE ---
-const SUPABASE_URL = 'SUA_SUPABASE_URL'; // Substitui pela tua URL do Supabase
-const SUPABASE_ANON_KEY = 'SUA_SUPABASE_ANON_KEY'; // Substitui pela tua Anon Key
+const SUPABASE_URL = 'https://kkrqrvticxtnexlxsghs.supabase.co/rest/v1/'; // Substitui pela tua URL do Supabase
+const SUPABASE_ANON_KEY = 'sb_publishable_Dl9qdGpU7FS5hCzWI0P8Kw_l9MsBFYl'; // Substitui pela tua Anon Key
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
