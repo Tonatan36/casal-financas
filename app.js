@@ -2,10 +2,58 @@
 const SENHA_MESTRE = "1234";
 
 // --- CONFIGURAÇÃO DO SUPABASE ---
-const SUPABASE_URL = 'https://kkrqrvticxtnexlxsghs.supabase.co/rest/v1/'; // Substitui pela tua URL do Supabase
+const SUPABASE_URL = 'https://kkrqrvticxtnexlxsghs.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_Dl9qdGpU7FS5hCzWI0P8Kw_l9MsBFYl'; // Substitui pela tua Anon Key
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let promptInstalacaoPWA = null;
+
+window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault();
+    promptInstalacaoPWA = event;
+});
+
+window.addEventListener('appinstalled', () => {
+    promptInstalacaoPWA = null;
+    document.querySelectorAll('[data-install-app]').forEach(button => {
+        button.classList.add('hidden');
+    });
+});
+
+async function instalarAplicativo() {
+    if (promptInstalacaoPWA) {
+        const evento = promptInstalacaoPWA;
+        promptInstalacaoPWA = null;
+
+        try {
+            await evento.prompt();
+            await evento.userChoice;
+        } catch (error) {
+            console.error('Erro ao iniciar instalação do PWA:', error);
+            alert('Não foi possível iniciar a instalação. Tente novamente pelo menu do navegador.');
+        }
+        return;
+    }
+
+    const navegadorStandalone = window.matchMedia('(display-mode: standalone)').matches
+        || window.navigator.standalone === true;
+    if (navegadorStandalone) {
+        alert('O aplicativo já está instalado neste dispositivo.');
+        return;
+    }
+
+    const agente = window.navigator.userAgent;
+    const dispositivoApple = /iPhone|iPad|iPod/.test(agente)
+        || (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
+    if (dispositivoApple) {
+        alert('Para instalar no iPhone ou iPad: toque em Compartilhar no Safari e escolha "Adicionar à Tela de Início".');
+    } else if (/Android/i.test(agente)) {
+        alert('Para instalar, abra o menu do navegador e toque em "Instalar app" ou "Adicionar à tela inicial".');
+    } else {
+        alert('Para instalar, abra o menu do navegador e escolha "Instalar app" ou "Instalar esta página como app".');
+    }
+}
 
 // Verificação de Senha
 function verificarSenha() {
@@ -90,20 +138,22 @@ async function adicionarTransacao(event) {
         recorrente
     };
 
-    const { error } = await supabaseClient
-        .from('transacoes')
-        .insert([payload]);
+    try {
+        const { error } = await supabaseClient
+            .from('transacoes')
+            .insert([payload]);
 
-    if (error) {
+        if (error) throw error;
+    } catch (error) {
         console.error('Erro ao adicionar transação:', error);
-        alert('Erro ao guardar transação.');
+        alert(`Erro ao guardar transação: ${error?.message || 'Verifique sua conexão e tente novamente.'}`);
         return;
     }
 
     document.getElementById('form-transacao').reset();
     alternarCamposTipo();
     alternarFormaPagamento();
-    carregarTransacoes();
+    await carregarTransacoes();
 }
 
 // Carregar Transações e Atualizar Resumo com Porcentagem
