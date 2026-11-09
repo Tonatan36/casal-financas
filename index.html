@@ -4,10 +4,105 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Controle Financeiro do Casal</title>
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="description" content="Gestão financeira compartilhada do casal.">
+    <link rel="manifest" href="./manifest.webmanifest">
+    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="./icons/icon-192.png">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        @media (max-width: 639px) {
+            #app-conteudo {
+                padding: 1rem;
+            }
+
+            .transactions-table,
+            .transactions-table tbody {
+                display: block;
+                width: 100%;
+            }
+
+            .transactions-table thead {
+                display: none;
+            }
+
+            .transactions-table tbody {
+                display: grid;
+                gap: 0.75rem;
+            }
+
+            .transactions-table tbody tr {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                gap: 0.5rem;
+                padding: 0.875rem;
+                border: 1px solid #e2e8f0;
+                border-radius: 0.875rem;
+            }
+
+            .transactions-table tbody td {
+                display: flex;
+                align-items: center;
+                min-width: 0;
+                padding: 0 !important;
+                border: 0;
+            }
+
+            .transactions-table tbody td:first-child {
+                grid-column: 1 / -1;
+                overflow-wrap: anywhere;
+                font-size: 0.9375rem;
+            }
+
+            .transactions-table tbody td:nth-child(2),
+            .transactions-table tbody td:nth-child(3) {
+                grid-column: 1 / -1;
+                justify-content: space-between;
+                gap: 0.75rem;
+            }
+
+            .transactions-table tbody td:nth-child(2)::before,
+            .transactions-table tbody td:nth-child(3)::before {
+                color: #64748b;
+                content: attr(data-label);
+                font-size: 0.75rem;
+                flex: 0 0 auto;
+            }
+
+            .transactions-table tbody td:nth-child(4) {
+                justify-content: flex-start;
+            }
+
+            .transactions-table tbody td:nth-child(5) {
+                justify-content: flex-end;
+                text-align: right;
+            }
+
+            .transactions-table tbody td:nth-child(6) {
+                grid-column: 1 / -1;
+                justify-content: flex-end;
+            }
+
+            input,
+            select,
+            button {
+                min-height: 2.75rem;
+            }
+
+            input,
+            select {
+                font-size: 16px;
+            }
+
+            input[type="checkbox"] {
+                min-height: 1rem;
+                min-width: 1rem;
+            }
+        }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
@@ -113,7 +208,7 @@
         <div class="bg-white p-5 rounded-2xl shadow-sm flex-1">
             <h2 class="text-sm font-bold text-slate-700 mb-3">Histórico de Lançamentos</h2>
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse text-sm">
+                <table class="transactions-table w-full text-left border-collapse text-sm">
                     <thead>
                         <tr class="border-b text-slate-400 text-xs uppercase">
                             <th class="py-2">Descrição</th>
@@ -134,5 +229,13 @@
 
     <!-- Script principal -->
     <script src="app.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./service-worker.js')
+                    .catch(error => console.error('Erro ao registrar o service worker:', error));
+            });
+        }
+    </script>
 </body>
 </html>

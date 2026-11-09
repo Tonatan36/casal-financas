@@ -148,8 +148,8 @@ async function carregarTransacoes() {
         tr.className = 'border-b hover:bg-slate-50 transition';
         tr.innerHTML = `
             <td class="py-3 font-medium text-slate-700">${t.descricao}</td>
-            <td class="py-3 text-slate-500"><span class="bg-slate-100 px-2 py-1 rounded-md text-xs font-medium">${t.responsavel}</span></td>
-            <td class="py-3 text-slate-500 text-xs">${detalhesPagamento}</td>
+            <td data-label="Responsável" class="py-3 text-slate-500"><span class="bg-slate-100 px-2 py-1 rounded-md text-xs font-medium">${t.responsavel}</span></td>
+            <td data-label="Pagamento" class="py-3 text-slate-500 text-xs">${detalhesPagamento}</td>
             <td class="py-3"><span class="${t.tipo === 'receita' ? 'text-emerald-600 bg-emerald-50' : 'text-rose-600 bg-rose-50'} px-2.5 py-1 rounded-full text-xs font-semibold">${t.tipo.toUpperCase()}</span></td>
             <td class="py-3 text-right font-bold ${t.tipo === 'receita' ? 'text-emerald-600' : 'text-rose-600'}">${t.tipo === 'receita' ? '+' : '-'} R$ ${Number(t.valor).toFixed(2)}</td>
             <td class="py-3 text-center">
