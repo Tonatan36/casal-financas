@@ -58,30 +58,32 @@
             }
 
             .transactions-table tbody td:nth-child(2),
-            .transactions-table tbody td:nth-child(3) {
+            .transactions-table tbody td:nth-child(3),
+            .transactions-table tbody td:nth-child(4) {
                 grid-column: 1 / -1;
                 justify-content: space-between;
                 gap: 0.75rem;
             }
 
             .transactions-table tbody td:nth-child(2)::before,
-            .transactions-table tbody td:nth-child(3)::before {
+            .transactions-table tbody td:nth-child(3)::before,
+            .transactions-table tbody td:nth-child(4)::before {
                 color: #64748b;
                 content: attr(data-label);
                 font-size: 0.75rem;
                 flex: 0 0 auto;
             }
 
-            .transactions-table tbody td:nth-child(4) {
+            .transactions-table tbody td:nth-child(5) {
                 justify-content: flex-start;
             }
 
-            .transactions-table tbody td:nth-child(5) {
+            .transactions-table tbody td:nth-child(6) {
                 justify-content: flex-end;
                 text-align: right;
             }
 
-            .transactions-table tbody td:nth-child(6) {
+            .transactions-table tbody td:nth-child(7) {
                 grid-column: 1 / -1;
                 justify-content: flex-end;
             }
@@ -133,9 +135,8 @@
             </div>
         </header>
 
-        <!-- CARDS DE RESUMO -->
-       <!-- CARDS DE RESUMO -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+         <!-- CARDS DE RESUMO -->
+         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div class="bg-white p-4 rounded-2xl shadow-sm border-l-4 border-emerald-500">
                 <p class="text-xs text-slate-400 font-medium uppercase">Receitas do Mês</p>
                 <p id="total-receitas" class="text-2xl font-bold text-emerald-600">R$ 0,00</p>
@@ -156,20 +157,51 @@
                 <p id="saldo-total" class="text-2xl font-bold text-indigo-600">R$ 0,00</p>
             </div>
         </div>
-        <!-- FORMULÁRIO DE ADRIÇÃO -->
+        <div class="bg-white p-4 rounded-2xl shadow-sm mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div>
+                    <p class="text-xs text-slate-400 font-medium uppercase">Meta mensal de saldo</p>
+                    <p id="valor-meta" class="font-bold text-indigo-700">Não definida</p>
+                    <p id="texto-progresso-meta" class="text-xs text-slate-500 mt-1">Defina uma meta mensal de saldo positivo.</p>
+                </div>
+                <div class="flex gap-2">
+                    <input type="number" id="meta-input" min="0" step="0.01" placeholder="Meta em R$" aria-label="Meta mensal em reais" class="w-36 px-3 py-2 border rounded-xl text-sm">
+                    <button type="button" id="botao-meta" class="bg-indigo-50 text-indigo-700 px-3 py-2 rounded-xl text-sm font-semibold">Salvar meta</button>
+                </div>
+            </div>
+            <div class="w-full bg-slate-100 h-2 rounded-full mt-3 overflow-hidden">
+                <div id="progresso-meta" class="bg-indigo-500 h-full transition-all duration-500" style="width: 0%"></div>
+            </div>
+            <p class="text-xs text-slate-400 mt-2">A meta fica salva somente neste dispositivo.</p>
+        </div>
+        <div id="mensagem-app" role="status" aria-live="polite" class="hidden"></div>
+
+        <!-- FORMULÁRIO DE ADIÇÃO -->
         <div class="bg-white p-5 rounded-2xl shadow-sm mb-6">
             <h2 class="text-sm font-bold text-slate-700 mb-3">Novo Lançamento</h2>
             <form id="form-transacao" onsubmit="adicionarTransacao(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 
                 <input type="text" id="descricao" placeholder="Descrição (ex: Aluguel, Supermercado)" required class="px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 
-                <input type="number" step="0.01" id="valor" placeholder="Valor total (R$)" required class="px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <input type="number" min="0.01" step="0.01" id="valor" placeholder="Valor total (R$)" required class="px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 
                 <select id="tipo" onchange="alternarCamposTipo()" class="px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="despesa">Despesa</option>
                     <option value="receita">Receita</option>
                 </select>
 
+                <input type="date" id="data-lancamento" required aria-label="Data do lançamento" class="px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <select id="categoria" class="px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    <option value="Moradia">Moradia</option>
+                    <option value="Alimentação">Alimentação</option>
+                    <option value="Transporte">Transporte</option>
+                    <option value="Saúde">Saúde</option>
+                    <option value="Educação">Educação</option>
+                    <option value="Lazer">Lazer</option>
+                    <option value="Contas">Contas</option>
+                    <option value="Compras">Compras</option>
+                    <option value="Outros">Outros</option>
+                </select>
                 <select id="responsavel" class="px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     <option value="Ewerton">Ewerton</option>
                     <option value="Blenda">Blenda</option>
@@ -193,30 +225,82 @@
 
                     <!-- Se Parcelado (Oculto inicialmente) -->
                     <div id="bloco-parcelado" class="hidden sm:col-span-2 grid grid-cols-2 gap-2">
-                        <input type="text" id="cartao" placeholder="Qual Cartão? (ex: Nubank Gold)" class="px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                        <input type="number" id="parcelas" placeholder="Qtd Parcelas" min="2" value="2" class="px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <input type="text" id="cartao" list="opcoes-cartoes" placeholder="Selecione ou digite o cartão" class="px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        <datalist id="opcoes-cartoes">
+                            <option value="Nubank"></option>
+                            <option value="Nubank Ultravioleta"></option>
+                            <option value="Itaú"></option>
+                            <option value="Itaú Click"></option>
+                            <option value="Bradesco"></option>
+                            <option value="Santander"></option>
+                            <option value="Banco do Brasil"></option>
+                            <option value="Caixa"></option>
+                            <option value="Inter"></option>
+                            <option value="C6 Bank"></option>
+                            <option value="PicPay"></option>
+                            <option value="Mercado Pago"></option>
+                            <option value="BTG Pactual"></option>
+                            <option value="XP"></option>
+                            <option value="Outro cartão"></option>
+                        </datalist>
+                        <input type="number" id="parcelas" placeholder="Qtd Parcelas" min="2" max="120" value="2" class="px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
                 </div>
 
                 <!-- Recorrência -->
-                <div class="sm:col-span-3 flex items-center gap-2 mt-1">
+                <div id="bloco-recorrente" class="sm:col-span-3 flex items-center gap-2 mt-1">
                     <input type="checkbox" id="recorrente" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
-                    <label for="recorrente" class="text-xs text-slate-600 font-medium">🔁 Despesa Recorrente (Repete-se mensalmente)</label>
+                    <label for="recorrente" class="text-xs text-slate-600 font-medium">🔁 Gerar 12 lançamentos mensais</label>
                 </div>
 
-                <button type="submit" class="sm:col-span-3 bg-indigo-600 text-white font-semibold py-2.5 rounded-xl text-sm hover:bg-indigo-700 transition mt-2">Salvar Transação</button>
+                <div class="sm:col-span-3 flex gap-2 mt-2">
+                    <button id="botao-salvar" type="submit" class="flex-1 bg-indigo-600 text-white font-semibold py-2.5 rounded-xl text-sm hover:bg-indigo-700 transition">Salvar Transação</button>
+                    <button id="botao-cancelar-edicao" type="button" class="hidden bg-slate-100 text-slate-700 font-semibold py-2.5 px-4 rounded-xl text-sm">Cancelar edição</button>
+                </div>
             </form>
         </div>
 
         <!-- LISTA DE TRANSAÇÕES -->
         <div class="bg-white p-5 rounded-2xl shadow-sm flex-1">
-            <h2 class="text-sm font-bold text-slate-700 mb-3">Histórico de Lançamentos</h2>
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <h2 class="text-sm font-bold text-slate-700">Histórico de Lançamentos</h2>
+                <div class="flex flex-wrap gap-2">
+                    <input type="month" id="mes-filtro" aria-label="Filtrar por mês" class="px-2 py-2 border rounded-lg text-sm">
+                    <select id="tipo-filtro" aria-label="Filtrar por tipo" class="px-2 py-2 border rounded-lg text-sm">
+                        <option value="">Todos os tipos</option>
+                        <option value="receita">Receitas</option>
+                        <option value="despesa">Despesas</option>
+                    </select>
+                    <select id="responsavel-filtro" aria-label="Filtrar por responsável" class="px-2 py-2 border rounded-lg text-sm">
+                        <option value="">Todos</option>
+                        <option value="Ewerton">Ewerton</option>
+                        <option value="Blenda">Blenda</option>
+                        <option value="Casal">Casal</option>
+                    </select>
+                    <select id="categoria-filtro" aria-label="Filtrar por categoria" class="px-2 py-2 border rounded-lg text-sm">
+                        <option value="">Todas as categorias</option>
+                        <option value="Moradia">Moradia</option>
+                        <option value="Alimentação">Alimentação</option>
+                        <option value="Transporte">Transporte</option>
+                        <option value="Saúde">Saúde</option>
+                        <option value="Educação">Educação</option>
+                        <option value="Lazer">Lazer</option>
+                        <option value="Contas">Contas</option>
+                        <option value="Compras">Compras</option>
+                        <option value="Receitas">Receitas</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                    <button type="button" id="botao-exportar" class="bg-emerald-50 text-emerald-700 px-3 py-2 rounded-lg text-sm font-semibold">Exportar CSV</button>
+                </div>
+            </div>
+            <p id="resultado-filtro" class="text-xs text-slate-400 mb-3"></p>
             <div class="overflow-x-auto">
                 <table class="transactions-table w-full text-left border-collapse text-sm">
                     <thead>
                         <tr class="border-b text-slate-400 text-xs uppercase">
                             <th class="py-2">Descrição</th>
                             <th class="py-2">Responsável</th>
+                            <th class="py-2">Categoria</th>
                             <th class="py-2">Detalhes / Pagamento</th>
                             <th class="py-2">Tipo</th>
                             <th class="py-2 text-right">Valor</th>
