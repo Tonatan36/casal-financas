@@ -135,6 +135,13 @@
             </div>
         </header>
 
+        <nav class="flex gap-2 mb-6 border-b border-slate-200" role="tablist" aria-label="Seções do aplicativo">
+            <button type="button" id="aba-dashboard" role="tab" aria-selected="true" aria-controls="painel-dashboard" data-tab="dashboard" class="px-4 py-2 border-b-2 border-indigo-600 text-indigo-700 font-semibold">Dashboard</button>
+            <button type="button" id="aba-lancamentos" role="tab" aria-selected="false" aria-controls="painel-lancamentos" data-tab="lancamentos" tabindex="-1" class="px-4 py-2 border-b-2 border-transparent text-slate-500 font-semibold">Lançamentos</button>
+        </nav>
+        <div id="mensagem-app" role="status" aria-live="polite" class="hidden"></div>
+
+        <section id="painel-dashboard" role="tabpanel" aria-labelledby="aba-dashboard" tabindex="0">
          <!-- CARDS DE RESUMO -->
          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <div class="bg-white p-4 rounded-2xl shadow-sm border-l-4 border-emerald-500">
@@ -281,8 +288,9 @@
                 <p id="projecao-mes" class="text-xs text-indigo-700 mt-3"></p>
             </article>
         </section>
-        <div id="mensagem-app" role="status" aria-live="polite" class="hidden"></div>
+        </section>
 
+        <section id="painel-lancamentos" role="tabpanel" aria-labelledby="aba-lancamentos" tabindex="0" class="hidden">
         <!-- FORMULÁRIO DE ADIÇÃO -->
         <div class="bg-white p-5 rounded-2xl shadow-sm mb-6">
             <h2 class="text-sm font-bold text-slate-700 mb-3">Novo Lançamento</h2>
@@ -414,11 +422,44 @@
                 </table>
             </div>
         </div>
+        </section>
     </div>
 
     <!-- Script principal -->
     <script src="app.js"></script>
     <script>
+        const abas = [...document.querySelectorAll('[role="tab"][data-tab]')];
+        const paineis = [...document.querySelectorAll('[role="tabpanel"]')];
+
+        function ativarAba(abaSelecionada, moverFoco = false) {
+            abas.forEach(aba => {
+                const selecionada = aba === abaSelecionada;
+                aba.setAttribute('aria-selected', String(selecionada));
+                aba.tabIndex = selecionada ? 0 : -1;
+                aba.classList.toggle('border-indigo-600', selecionada);
+                aba.classList.toggle('text-indigo-700', selecionada);
+                aba.classList.toggle('border-transparent', !selecionada);
+                aba.classList.toggle('text-slate-500', !selecionada);
+            });
+            paineis.forEach(painel => painel.classList.toggle('hidden', painel.id !== abaSelecionada.getAttribute('aria-controls')));
+            if (moverFoco) abaSelecionada.focus();
+            if (abaSelecionada.dataset.tab === 'dashboard') atualizarDashboard();
+        }
+
+        abas.forEach((aba, indice) => {
+            aba.addEventListener('click', () => ativarAba(aba));
+            aba.addEventListener('keydown', event => {
+                let proximoIndice;
+                if (event.key === 'ArrowRight') proximoIndice = (indice + 1) % abas.length;
+                else if (event.key === 'ArrowLeft') proximoIndice = (indice - 1 + abas.length) % abas.length;
+                else if (event.key === 'Home') proximoIndice = 0;
+                else if (event.key === 'End') proximoIndice = abas.length - 1;
+                else return;
+                event.preventDefault();
+                ativarAba(abas[proximoIndice], true);
+            });
+        });
+
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('./service-worker.js')
