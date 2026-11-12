@@ -1,5 +1,5 @@
 // Configuração da Senha do Casal
-const SENHA_MESTRE = "1234";
+const SENHA_MESTRE = "1903";
 
 // --- CONFIGURAÇÃO DO SUPABASE ---
 const SUPABASE_URL = 'https://kkrqrvticxtnexlxsghs.supabase.co';
@@ -441,6 +441,7 @@ function dataMes(ano, mes, dia) {
 }
 
 function calcularMesFatura(dataCompra, cartao) {
+    if (!dataCompra) return dataLocalISO().slice(0, 7);
     if (!cartao) return dataCompra.slice(0, 7);
     const [ano, mes, dia] = dataCompra.split('-').map(Number);
     let anoFechamento = ano;
