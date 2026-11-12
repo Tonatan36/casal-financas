@@ -174,6 +174,113 @@
             </div>
             <p class="text-xs text-slate-400 mt-2">A meta fica salva somente neste dispositivo.</p>
         </div>
+        <section class="mb-6">
+            <h2 class="text-lg font-bold text-slate-700 mb-3">Inteligência financeira</h2>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+                <article class="bg-white p-4 rounded-xl shadow-sm"><p class="text-xs text-slate-400 uppercase">Despesas fixas</p><p id="indicador-fixas" class="font-bold text-slate-700">R$ 0,00</p></article>
+                <article class="bg-white p-4 rounded-xl shadow-sm"><p class="text-xs text-slate-400 uppercase">Despesas variáveis</p><p id="indicador-variaveis" class="font-bold text-slate-700">R$ 0,00</p></article>
+                <article class="bg-white p-4 rounded-xl shadow-sm"><p class="text-xs text-slate-400 uppercase">Total de dívidas</p><p id="indicador-dividas" class="font-bold text-rose-600">R$ 0,00</p></article>
+                <article class="bg-white p-4 rounded-xl shadow-sm"><p class="text-xs text-slate-400 uppercase">Faturas futuras</p><p id="indicador-faturas" class="font-bold text-indigo-600">R$ 0,00</p></article>
+            </div>
+            <div class="grid md:grid-cols-2 gap-4">
+                <article class="bg-white p-4 rounded-xl shadow-sm"><h3 class="font-semibold text-sm mb-2">Despesas por categoria <span id="comparativo-categorias" class="font-normal text-slate-400"></span></h3><canvas id="grafico-categorias" class="w-full" height="190" aria-label="Despesas por categoria comparadas ao mês anterior"></canvas></article>
+                <article class="bg-white p-4 rounded-xl shadow-sm"><h3 class="font-semibold text-sm mb-2">Receitas por pessoa</h3><canvas id="grafico-receitas" class="w-full" height="190" aria-label="Receitas de cada pessoa"></canvas></article>
+                <article class="bg-white p-4 rounded-xl shadow-sm"><h3 class="font-semibold text-sm mb-2">Evolução do saldo</h3><canvas id="grafico-saldo" class="w-full" height="190" aria-label="Evolução do saldo nos últimos meses"></canvas></article>
+                <article class="bg-white p-4 rounded-xl shadow-sm"><h3 class="font-semibold text-sm mb-2">Planejado versus realizado</h3><canvas id="grafico-planejado" class="w-full" height="190" aria-label="Despesas planejadas versus realizadas"></canvas></article>
+            </div>
+        </section>
+        <section class="bg-white p-5 rounded-2xl shadow-sm mb-6">
+            <h2 class="font-bold text-slate-700 mb-1">Planejamento do mês</h2>
+            <p class="text-xs text-slate-400 mb-3">Informe as rendas e despesas previstas para acompanhar o saldo familiar planejado.</p>
+            <form id="form-planejamento" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <label class="text-xs text-slate-500">Renda Ewerton<input id="planejamento-ewerton" type="number" min="0" step="0.01" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
+                <label class="text-xs text-slate-500">Renda Blenda<input id="planejamento-blenda" type="number" min="0" step="0.01" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
+                <label class="text-xs text-slate-500">Despesas previstas<input id="planejamento-despesas" type="number" min="0" step="0.01" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
+                <div class="flex flex-col justify-end gap-2"><p class="text-xs text-slate-500">Renda familiar: <strong id="renda-familiar" class="text-slate-700">R$ 0,00</strong></p><p class="text-xs text-slate-500">Saldo planejado: <strong id="saldo-planejado" class="text-indigo-700">R$ 0,00</strong></p><button class="bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm font-semibold">Salvar planejamento</button></div>
+            </form>
+        </section>
+        <section class="grid lg:grid-cols-2 gap-4 mb-6">
+            <article class="bg-white p-5 rounded-2xl shadow-sm">
+                <h2 class="font-bold text-slate-700 mb-1">Recorrências inteligentes</h2>
+                <p class="text-xs text-slate-400 mb-3">Crie uma série mensal para salário ou despesa fixa. O app gera somente o mês selecionado e não duplica lançamentos já criados.</p>
+                <form id="form-recorrencia" class="grid grid-cols-2 gap-2 mb-3">
+                    <input id="recorrencia-descricao" required placeholder="Ex.: Salário, aluguel" class="px-3 py-2 border rounded-lg text-sm">
+                    <input id="recorrencia-valor" required type="number" min="0.01" step="0.01" placeholder="Valor (R$)" class="px-3 py-2 border rounded-lg text-sm">
+                    <select id="recorrencia-tipo" class="px-3 py-2 border rounded-lg text-sm"><option value="despesa">Despesa</option><option value="receita">Receita</option></select>
+                    <select id="recorrencia-categoria" class="px-3 py-2 border rounded-lg text-sm">
+                        <option value="Moradia">Moradia</option><option value="Alimentação">Alimentação</option><option value="Transporte">Transporte</option><option value="Saúde">Saúde</option><option value="Educação">Educação</option><option value="Lazer">Lazer</option><option value="Contas">Contas</option><option value="Compras">Compras</option><option value="Outros">Outros</option>
+                    </select>
+                    <select id="recorrencia-responsavel" class="px-3 py-2 border rounded-lg text-sm"><option value="Ewerton">Ewerton</option><option value="Blenda">Blenda</option><option value="Casal">Casal (Ambos)</option></select>
+                    <select id="recorrencia-conta" class="px-3 py-2 border rounded-lg text-sm"><option value="Nubank">Conta Nubank</option><option value="Itaú">Conta Itaú</option><option value="Carteira">Dinheiro / Carteira</option><option value="Outros">Outra Conta</option></select>
+                    <label class="text-xs text-slate-500">Primeiro mês<input id="recorrencia-inicio" required type="date" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
+                    <label class="text-xs text-slate-500">Dia do lançamento<input id="recorrencia-dia" required type="number" min="1" max="31" placeholder="Dia" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
+                    <label class="col-span-2 text-xs text-slate-500">Último mês (opcional)<input id="recorrencia-fim" type="date" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
+                    <button class="col-span-2 bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Criar recorrência mensal</button>
+                </form>
+                <button id="botao-gerar-recorrencias" type="button" class="text-xs text-indigo-600 font-semibold mb-3">Gerar recorrências do mês selecionado</button>
+                <div id="lista-recorrencias" class="space-y-2 text-sm"></div>
+            </article>
+            <article class="bg-white p-5 rounded-2xl shadow-sm">
+                <h2 class="font-bold text-slate-700 mb-1">Orçamento mensal por categoria</h2>
+                <p class="text-xs text-slate-400 mb-3">Acompanhe os gastos do mês selecionado. O aviso aparece ao atingir 80% do limite.</p>
+                <form id="form-orcamento" class="grid grid-cols-2 gap-2 mb-3">
+                    <select id="orcamento-categoria" class="px-3 py-2 border rounded-lg text-sm">
+                        <option value="Moradia">Moradia</option><option value="Alimentação">Alimentação</option><option value="Transporte">Transporte</option><option value="Saúde">Saúde</option><option value="Educação">Educação</option><option value="Lazer">Lazer</option><option value="Contas">Contas</option><option value="Compras">Compras</option><option value="Outros">Outros</option>
+                    </select>
+                    <input id="orcamento-limite" required type="number" min="0.01" step="0.01" placeholder="Limite (R$)" class="px-3 py-2 border rounded-lg text-sm">
+                    <button class="col-span-2 bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Salvar orçamento do mês</button>
+                </form>
+                <div id="lista-orcamentos" aria-live="polite" class="space-y-3 text-sm"></div>
+            </article>
+        </section>
+        <section class="grid lg:grid-cols-2 gap-4 mb-6">
+            <article class="bg-white p-5 rounded-2xl shadow-sm">
+                <h2 class="font-bold text-slate-700 mb-3">Cartões e faturas</h2>
+                <form id="form-cartao" class="grid grid-cols-2 gap-2 mb-4">
+                    <input id="novo-cartao-nome" required placeholder="Nome do cartão" class="px-3 py-2 border rounded-lg text-sm">
+                    <input id="novo-cartao-limite" required type="number" min="0.01" step="0.01" placeholder="Limite total (R$)" class="px-3 py-2 border rounded-lg text-sm">
+                    <label class="text-xs text-slate-500">Fechamento<input id="novo-cartao-fechamento" required type="number" min="1" max="31" placeholder="Dia" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
+                    <label class="text-xs text-slate-500">Vencimento<input id="novo-cartao-vencimento" required type="number" min="1" max="31" placeholder="Dia" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
+                    <button class="col-span-2 bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Cadastrar cartão</button>
+                </form>
+                <div id="lista-cartoes" class="space-y-2 text-sm"></div>
+            </article>
+            <article class="bg-white p-5 rounded-2xl shadow-sm">
+                <h2 class="font-bold text-slate-700 mb-3">Contas a pagar e receber</h2>
+                <p id="aviso-vencimentos" class="text-xs text-amber-700 mb-2"></p>
+                <button id="botao-notificacoes" type="button" class="text-xs text-indigo-600 font-semibold mb-2">Ativar lembretes do navegador</button>
+                <form id="form-conta" class="grid grid-cols-2 gap-2 mb-4">
+                    <input id="conta-descricao" required placeholder="Ex.: Aluguel, energia" class="px-3 py-2 border rounded-lg text-sm">
+                    <input id="conta-valor" required type="number" min="0.01" step="0.01" placeholder="Valor (R$)" class="px-3 py-2 border rounded-lg text-sm">
+                    <input id="conta-vencimento" required type="date" class="px-3 py-2 border rounded-lg text-sm">
+                    <select id="conta-tipo" class="px-3 py-2 border rounded-lg text-sm"><option value="despesa">A pagar</option><option value="receita">A receber</option></select>
+                    <label class="col-span-2 flex items-center gap-2 text-xs text-slate-500"><input id="conta-fixa" type="checkbox"> Repetir mensalmente</label>
+                    <button class="col-span-2 bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Adicionar à agenda</button>
+                </form>
+                <div id="agenda-contas" class="space-y-2 text-sm"></div>
+            </article>
+            <article class="bg-white p-5 rounded-2xl shadow-sm">
+                <h2 class="font-bold text-slate-700 mb-3">Metas compartilhadas</h2>
+                <form id="form-meta-compartilhada" class="grid grid-cols-2 gap-2 mb-4">
+                    <input id="meta-nome" required placeholder="Ex.: Viagem, reserva" class="px-3 py-2 border rounded-lg text-sm">
+                    <input id="meta-alvo" required type="number" min="0.01" step="0.01" placeholder="Valor da meta (R$)" class="px-3 py-2 border rounded-lg text-sm">
+                    <input id="meta-atual" required type="number" min="0" step="0.01" value="0" placeholder="Já guardado (R$)" class="px-3 py-2 border rounded-lg text-sm">
+                    <button class="bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Criar meta</button>
+                </form>
+                <div id="lista-metas" class="space-y-3 text-sm"></div>
+            </article>
+            <article class="bg-white p-5 rounded-2xl shadow-sm">
+                <h2 class="font-bold text-slate-700 mb-3">Dívidas e financiamentos</h2>
+                <form id="form-divida" class="grid grid-cols-2 gap-2 mb-4">
+                    <input id="divida-nome" required placeholder="Descrição" class="px-3 py-2 border rounded-lg text-sm">
+                    <input id="divida-saldo" required type="number" min="0.01" step="0.01" placeholder="Saldo devedor (R$)" class="px-3 py-2 border rounded-lg text-sm">
+                    <input id="divida-parcela" required type="number" min="0.01" step="0.01" placeholder="Pagamento mensal (R$)" class="px-3 py-2 border rounded-lg text-sm">
+                    <button class="bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Cadastrar dívida</button>
+                </form>
+                <div id="lista-dividas" class="space-y-2 text-sm"></div>
+                <p id="projecao-mes" class="text-xs text-indigo-700 mt-3"></p>
+            </article>
+        </section>
         <div id="mensagem-app" role="status" aria-live="polite" class="hidden"></div>
 
         <!-- FORMULÁRIO DE ADIÇÃO -->
@@ -245,12 +352,6 @@
                         </datalist>
                         <input type="number" id="parcelas" placeholder="Qtd Parcelas" min="2" max="120" value="2" class="px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                     </div>
-                </div>
-
-                <!-- Recorrência -->
-                <div id="bloco-recorrente" class="sm:col-span-3 flex items-center gap-2 mt-1">
-                    <input type="checkbox" id="recorrente" class="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500">
-                    <label for="recorrente" class="text-xs text-slate-600 font-medium">🔁 Gerar 12 lançamentos mensais</label>
                 </div>
 
                 <div class="sm:col-span-3 flex gap-2 mt-2">
