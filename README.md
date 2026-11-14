@@ -12,6 +12,11 @@ Aplicação web responsiva para acompanhar receitas e despesas compartilhadas. A
 - Orçamentos mensais por categoria com alerta visual a partir de 80% do limite.
 - Cartões, limite usado/disponível, fechamento, vencimento, faturas e parcelas futuras.
 - Metas compartilhadas, dívidas/financiamentos e projeções.
+- Fluxo de caixa diário com saldo base configurável e aviso visual para projeções negativas.
+- Simulador de compras parceladas, comparativos mensais e atalho móvel para novos lançamentos.
+- Rateio automático de despesas por categoria (igual, proporcional às rendas planejadas ou individual).
+- Fundos sazonais com sugestão de provisão mensal e metas com aporte sugerido por prazo.
+- Fechamento mensal com resumo e bloqueio no banco para impedir alterações retroativas em transações.
 - Supabase Realtime para atualizar os dados entre dispositivos.
 - PWA instalável. A sincronização de dados exige conexão com a internet.
 
@@ -22,6 +27,7 @@ Aplicação web responsiva para acompanhar receitas e despesas compartilhadas. A
    - `migrations/20261110_financeiro_melhorias.sql`
    - `migrations/20261112_planejamento_financeiro.sql`
    - `migrations/20261113_recorrencias_orcamentos.sql`
+   - `migrations/20261114_inteligencia_financeira.sql`
 3. Sirva a pasta por HTTP, por exemplo:
 
    ```sh
@@ -45,6 +51,9 @@ As migrações adicionam as tabelas e colunas necessárias e incluem as tabelas 
 - O orçamento é associado ao mês selecionado no filtro de lançamentos e à categoria escolhida.
 - O gasto da categoria é comparado com a soma dos lançamentos de despesa daquele mês. A interface destaca o orçamento a partir de 80% e limita a barra visual a 100%.
 - Os avisos de contas aparecem no app para itens vencidos e para vencimentos nos próximos três dias. Notificações do navegador exigem permissão e são emitidas quando o app está aberto; não há serviço de push em segundo plano.
+- O fluxo de caixa parte do saldo real e data informados em **Saldo base do caixa** e projeta transações e contas agendadas. Contas vencidas e ainda pendentes são projetadas para hoje; parcelas simuladas não são gravadas.
+- Regras de rateio se aplicam a novas despesas e recorrências. Na regra proporcional, a divisão usa as rendas do planejamento do mês selecionado; o percentual aplicado fica registrado no lançamento.
+- O fechamento guarda um resumo imutável do mês e um gatilho do banco impede inserir, editar ou excluir transações nessa competência. A migração precisa ser aplicada no Supabase para que o bloqueio também valha fora da interface.
 
 ## Dados e limitações
 
