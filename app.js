@@ -46,8 +46,101 @@ function mostrarMensagem(texto, tipo = 'sucesso') {
     mensagem.classList.remove('hidden');
 }
 
+function abrirFormularioUnificado() {
+    const modal = document.getElementById('modal-formulario');
+    modal.classList.remove('hidden');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('overflow-hidden');
+    document.getElementById('tipo-operacao').focus();
+}
+
+function fecharFormularioUnificado(devolverFoco = true) {
+    const modal = document.getElementById('modal-formulario');
+    modal.classList.add('hidden');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('overflow-hidden');
+    if (devolverFoco && !document.getElementById('app-conteudo').classList.contains('hidden')) {
+        document.getElementById('botao-abrir-formulario').focus();
+    }
+}
+
 function esconderMensagem() {
     document.getElementById('mensagem-app').classList.add('hidden');
+}
+
+function resetarGrupoFormulario(id) {
+    const grupo = document.getElementById(id);
+    grupo.querySelectorAll('input, select, textarea').forEach(campo => {
+        if (campo.type === 'checkbox' || campo.type === 'radio') {
+            campo.checked = campo.defaultChecked;
+        } else if (campo.tagName === 'SELECT') {
+            campo.value = [...campo.options].find(opcao => opcao.defaultSelected)?.value || campo.options[0]?.value || '';
+        } else {
+            campo.value = campo.defaultValue;
+        }
+    });
+}
+
+function alternarFormularioUnificado(rolar = false) {
+    const tipo = document.getElementById('tipo-operacao').value;
+    const mes = document.getElementById('mes-filtro').value || dataLocalISO().slice(0, 7);
+    const planejamentoBloqueado = tipo === 'planejamento' && mesFechado(mes);
+    let grupoAtivo;
+
+    document.querySelectorAll('[data-form-option]').forEach(grupo => {
+        const ativo = grupo.dataset.formOption === tipo;
+        if (ativo) grupoAtivo = grupo;
+        grupo.classList.toggle('hidden', !ativo);
+        grupo.querySelectorAll('input, select, textarea').forEach(campo => {
+            campo.setAttribute('form', 'form-unificado');
+            campo.disabled = !ativo || planejamentoBloqueado;
+        });
+    });
+    document.querySelectorAll('[data-form-result]').forEach(resultado => {
+        resultado.classList.toggle('hidden', resultado.dataset.formResult !== tipo);
+    });
+
+    const botaoSalvar = document.getElementById('botao-salvar');
+    const rotulos = {
+        transacao: transacaoEmEdicao === null ? 'Salvar lançamento' : 'Salvar alterações',
+        'saldo-base': 'Salvar saldo base',
+        planejamento: 'Salvar planejamento',
+        simulador: 'Simular impacto',
+        recorrencia: 'Criar recorrência',
+        orcamento: 'Salvar orçamento',
+        cartao: 'Cadastrar cartão',
+        conta: 'Adicionar conta',
+        'meta-compartilhada': 'Criar meta',
+        divida: 'Cadastrar dívida',
+        rateio: 'Salvar regra de rateio',
+        fundo: 'Criar fundo sazonal'
+    };
+    const descricoes = {
+        transacao: 'Registre uma receita ou despesa.',
+        'saldo-base': 'Informe o saldo e a data da última conferência.',
+        planejamento: 'Atualize rendas e despesas previstas para o mês selecionado.',
+        simulador: 'Simule o impacto de uma compra parcelada sem criar lançamentos.',
+        recorrencia: 'Cadastre uma receita ou despesa mensal recorrente.',
+        orcamento: 'Defina o limite mensal de uma categoria.',
+        cartao: 'Cadastre um cartão e seus dias de fechamento e vencimento.',
+        conta: 'Agende uma conta a pagar ou receber.',
+        'meta-compartilhada': 'Crie uma meta financeira compartilhada.',
+        divida: 'Cadastre uma dívida ou financiamento.',
+        rateio: 'Defina como dividir despesas de uma categoria.',
+        fundo: 'Crie uma reserva para uma despesa futura previsível.'
+    };
+    botaoSalvar.textContent = rotulos[tipo] || 'Continuar';
+    botaoSalvar.disabled = planejamentoBloqueado;
+    document.getElementById('modal-descricao').textContent = descricoes[tipo] || 'Escolha uma ação para continuar.';
+
+    if (tipo === 'transacao') {
+        alternarCamposTipo();
+        alternarFormaPagamento();
+    }
+
+    if (rolar && grupoAtivo) {
+        requestAnimationFrame(() => grupoAtivo.scrollIntoView({ behavior: 'smooth', block: 'center' }));
+    }
 }
 
 function dataLocalISO(data = new Date()) {
@@ -105,6 +198,7 @@ async function verificarSenha() {
         document.getElementById('modal-senha').classList.add('hidden');
         document.getElementById('app-conteudo').classList.remove('hidden');
         document.getElementById('botao-fab').classList.remove('hidden');
+        window.dispatchEvent(new Event('app:opened'));
         document.getElementById('mes-filtro').value = dataLocalISO().slice(0, 7);
         try {
             await gerarLancamentosDoMes(dataLocalISO().slice(0, 7));
@@ -122,6 +216,8 @@ async function verificarSenha() {
 }
 
 function bloquearApp() {
+    fecharFormularioUnificado(false);
+    esconderMensagem();
     document.getElementById('input-senha').value = '';
     document.getElementById('erro-senha').classList.add('hidden');
     document.getElementById('app-conteudo').classList.add('hidden');
@@ -261,10 +357,10 @@ async function adicionarTransacao(event) {
 function limparFormulario() {
     transacaoEmEdicao = null;
     sufixoParcelaEmEdicao = '';
-    document.getElementById('form-transacao').reset();
+    resetarGrupoFormulario('form-transacao');
     document.getElementById('data-lancamento').value = dataLocalISO();
     document.getElementById('botao-cancelar-edicao').classList.add('hidden');
-    document.getElementById('botao-salvar').textContent = 'Salvar Transação';
+    document.getElementById('botao-salvar').textContent = 'Salvar lançamento';
     alternarCamposTipo();
     alternarFormaPagamento();
 }
@@ -278,6 +374,9 @@ function editarTransacao(id) {
     }
 
     transacaoEmEdicao = transacao.id;
+    document.getElementById('tipo-operacao').value = 'transacao';
+    alternarFormularioUnificado();
+    abrirFormularioUnificado();
     const parcela = transacao.descricao.match(/ (\(\d+\/\d+\))$/);
     sufixoParcelaEmEdicao = parcela ? parcela[1] : '';
     document.getElementById('descricao').value = transacao.descricao.replace(/ \(\d+\/\d+\)$/, '');
@@ -294,7 +393,7 @@ function editarTransacao(id) {
     }
     alternarCamposTipo();
     alternarFormaPagamento();
-    document.getElementById('botao-salvar').textContent = 'Salvar Alterações';
+    document.getElementById('botao-salvar').textContent = 'Salvar alterações';
     document.getElementById('botao-cancelar-edicao').classList.remove('hidden');
     document.getElementById('form-transacao').scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
@@ -705,6 +804,9 @@ function atualizarStatusFechamento(mes) {
         botao.disabled = false;
         botao.textContent = 'Fechar mês selecionado';
         formPlanejamento.querySelectorAll('input, button').forEach(campo => { campo.disabled = false; });
+    }
+    if (document.getElementById('tipo-operacao').value === 'planejamento') {
+        document.getElementById('botao-salvar').disabled = Boolean(fechamento);
     }
 }
 
@@ -1347,7 +1449,7 @@ async function criarFundoSazonal(event) {
         valor_atual: 0,
         data_alvo: dataAlvo
     };
-    if (await inserirRegistro('fundos_sazonais', payload, 'Fundo sazonal criado.')) event.target.reset();
+    if (await inserirRegistro('fundos_sazonais', payload, 'Fundo sazonal criado.')) resetarGrupoFormulario('form-fundo');
 }
 
 async function registrarAporteFundo(id) {
@@ -1440,7 +1542,7 @@ async function criarRecorrencia(event) {
         mostrarMensagem(`Não foi possível criar a recorrência. ${error.message}`, 'erro');
         return;
     }
-    event.target.reset();
+    resetarGrupoFormulario('form-recorrencia');
     document.getElementById('recorrencia-inicio').value = dataLocalISO();
     document.getElementById('recorrencia-dia').value = new Date().getDate();
     const mes = document.getElementById('mes-filtro').value || dataLocalISO().slice(0, 7);
@@ -1473,7 +1575,7 @@ async function salvarOrcamento(event) {
         mostrarMensagem(`Não foi possível salvar o orçamento. ${error.message}`, 'erro');
         return;
     }
-    event.target.reset();
+    resetarGrupoFormulario('form-orcamento');
     await carregarDadosCompartilhados();
     mostrarMensagem(`Orçamento de ${payload.categoria} salvo para ${mes}.`);
 }
@@ -1524,6 +1626,80 @@ function exportarCSV() {
     URL.revokeObjectURL(link.href);
 }
 
+async function salvarCartao() {
+    const payload = {
+        nome: document.getElementById('novo-cartao-nome').value.trim(),
+        limite_total: Number(document.getElementById('novo-cartao-limite').value),
+        dia_fechamento: Number(document.getElementById('novo-cartao-fechamento').value),
+        dia_vencimento: Number(document.getElementById('novo-cartao-vencimento').value)
+    };
+    if (payload.dia_fechamento < 1 || payload.dia_fechamento > 31 || payload.dia_vencimento < 1 || payload.dia_vencimento > 31) {
+        mostrarMensagem('Os dias de fechamento e vencimento devem estar entre 1 e 31.', 'erro');
+        return;
+    }
+    if (await inserirRegistro('cartoes', payload, 'Cartão cadastrado.')) resetarGrupoFormulario('form-cartao');
+}
+
+async function salvarConta() {
+    const recorrente = document.getElementById('conta-fixa').checked;
+    const payload = {
+        descricao: document.getElementById('conta-descricao').value.trim(),
+        valor: Number(document.getElementById('conta-valor').value),
+        data_vencimento: document.getElementById('conta-vencimento').value,
+        tipo: document.getElementById('conta-tipo').value,
+        recorrente,
+        serie_id: recorrente ? crypto.randomUUID() : null,
+        ativa: recorrente,
+        pago: false
+    };
+    if (await inserirRegistro('contas_agendadas', payload, 'Conta adicionada à agenda.')) resetarGrupoFormulario('form-conta');
+}
+
+async function salvarMetaCompartilhada() {
+    const payload = {
+        nome: document.getElementById('meta-nome').value.trim(),
+        valor_alvo: Number(document.getElementById('meta-alvo').value),
+        valor_atual: Number(document.getElementById('meta-atual').value || 0),
+        data_limite: document.getElementById('meta-prazo').value || null
+    };
+    if (await inserirRegistro('metas_compartilhadas', payload, 'Meta compartilhada criada.')) {
+        resetarGrupoFormulario('form-meta-compartilhada');
+    }
+}
+
+async function salvarDivida() {
+    const payload = {
+        nome: document.getElementById('divida-nome').value.trim(),
+        saldo_devedor: Number(document.getElementById('divida-saldo').value),
+        pagamento_mensal: Number(document.getElementById('divida-parcela').value)
+    };
+    if (await inserirRegistro('dividas', payload, 'Dívida cadastrada.')) resetarGrupoFormulario('form-divida');
+}
+
+async function submeterFormularioUnificado(event) {
+    event.preventDefault();
+    const acoes = {
+        transacao: () => adicionarTransacao(event),
+        'saldo-base': () => salvarSaldoBase(event),
+        planejamento: () => salvarPlanejamento(event),
+        simulador: () => simularParcelas(event),
+        recorrencia: () => criarRecorrencia(event),
+        orcamento: () => salvarOrcamento(event),
+        cartao: salvarCartao,
+        conta: salvarConta,
+        'meta-compartilhada': salvarMetaCompartilhada,
+        divida: salvarDivida,
+        rateio: () => salvarRegraRateio(event),
+        fundo: () => criarFundoSazonal(event)
+    };
+    const acao = acoes[document.getElementById('tipo-operacao').value];
+    if (!acao) {
+        mostrarMensagem('Selecione uma opção válida para continuar.', 'erro');
+        return;
+    }
+    await acao();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('data-lancamento').value = dataLocalISO();
     document.getElementById('simulador-inicio').value = dataLocalISO();
@@ -1531,76 +1707,63 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('recorrencia-dia').value = new Date().getDate();
     document.getElementById('conta-vencimento').value = dataLocalISO();
     document.getElementById('mes-filtro').value = dataLocalISO().slice(0, 7);
+    document.body.append(
+        document.getElementById('modal-formulario'),
+        document.getElementById('mensagem-app')
+    );
+    const camposUnificados = document.getElementById('campos-formulario-unificado');
+    document.querySelectorAll('[data-form-option]').forEach(grupo => camposUnificados.appendChild(grupo));
+    camposUnificados.appendChild(document.getElementById('resultado-simulador'));
     if (!navigator.onLine) mostrarMensagem('Você está offline. Os lançamentos precisam de conexão para sincronizar.', 'erro');
     ['tipo-filtro', 'responsavel-filtro', 'categoria-filtro'].forEach(id =>
         document.getElementById(id).addEventListener('change', renderizarTransacoes));
     document.getElementById('botao-cancelar-edicao').addEventListener('click', limparFormulario);
     document.getElementById('botao-meta').addEventListener('click', salvarMeta);
     document.getElementById('botao-exportar').addEventListener('click', exportarCSV);
-    document.getElementById('form-planejamento').addEventListener('submit', salvarPlanejamento);
-    document.getElementById('form-recorrencia').addEventListener('submit', criarRecorrencia);
-    document.getElementById('form-orcamento').addEventListener('submit', salvarOrcamento);
-    document.getElementById('botao-gerar-recorrencias').addEventListener('click', gerarRecorrenciasSelecionadas);
-    document.getElementById('form-simulador').addEventListener('submit', simularParcelas);
-    document.getElementById('form-saldo-base').addEventListener('submit', salvarSaldoBase);
-    document.getElementById('botao-fechar-mes').addEventListener('click', fecharMesSelecionado);
-    document.getElementById('form-rateio').addEventListener('submit', salvarRegraRateio);
-    document.getElementById('form-fundo').addEventListener('submit', criarFundoSazonal);
-    document.getElementById('botao-fab').addEventListener('click', () => {
-        document.getElementById('aba-lancamentos').click();
-        limparFormulario();
-        document.getElementById('descricao').focus();
+    document.getElementById('botao-abrir-formulario').addEventListener('click', abrirFormularioUnificado);
+    document.getElementById('botao-fechar-formulario').addEventListener('click', () => fecharFormularioUnificado());
+    document.getElementById('modal-formulario').addEventListener('click', event => {
+        if (!event.target.closest('[role="dialog"]')) fecharFormularioUnificado();
     });
-    document.getElementById('form-cartao').addEventListener('submit', async event => {
-        event.preventDefault();
-        const payload = {
-            nome: document.getElementById('novo-cartao-nome').value.trim(),
-            limite_total: Number(document.getElementById('novo-cartao-limite').value),
-            dia_fechamento: Number(document.getElementById('novo-cartao-fechamento').value),
-            dia_vencimento: Number(document.getElementById('novo-cartao-vencimento').value)
-        };
-        if (payload.dia_fechamento < 1 || payload.dia_fechamento > 31 || payload.dia_vencimento < 1 || payload.dia_vencimento > 31) {
-            mostrarMensagem('Os dias de fechamento e vencimento devem estar entre 1 e 31.', 'erro');
+    window.addEventListener('keydown', event => {
+        const modal = document.getElementById('modal-formulario');
+        if (modal.classList.contains('hidden')) return;
+        if (event.key === 'Escape') {
+            fecharFormularioUnificado();
             return;
         }
-        if (await inserirRegistro('cartoes', payload, 'Cartão cadastrado.')) event.target.reset();
+        if (event.key !== 'Tab') return;
+
+        const elementosFocaveis = [...modal.querySelectorAll('button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled])')]
+            .filter(elemento => elemento.getClientRects().length > 0);
+        const primeiro = elementosFocaveis[0];
+        const ultimo = elementosFocaveis[elementosFocaveis.length - 1];
+        if (!primeiro || !ultimo) return;
+        if (event.shiftKey && document.activeElement === primeiro) {
+            event.preventDefault();
+            ultimo.focus();
+        } else if (!event.shiftKey && document.activeElement === ultimo) {
+            event.preventDefault();
+            primeiro.focus();
+        }
     });
-    document.getElementById('form-conta').addEventListener('submit', async event => {
-        event.preventDefault();
-        const payload = {
-            descricao: document.getElementById('conta-descricao').value.trim(),
-            valor: Number(document.getElementById('conta-valor').value),
-            data_vencimento: document.getElementById('conta-vencimento').value,
-            tipo: document.getElementById('conta-tipo').value,
-            recorrente: document.getElementById('conta-fixa').checked,
-            serie_id: document.getElementById('conta-fixa').checked ? crypto.randomUUID() : null,
-            ativa: document.getElementById('conta-fixa').checked,
-            pago: false
-        };
-        if (await inserirRegistro('contas_agendadas', payload, 'Conta adicionada à agenda.')) event.target.reset();
-    });
-    document.getElementById('form-meta-compartilhada').addEventListener('submit', async event => {
-        event.preventDefault();
-        const payload = {
-            nome: document.getElementById('meta-nome').value.trim(),
-            valor_alvo: Number(document.getElementById('meta-alvo').value),
-            valor_atual: Number(document.getElementById('meta-atual').value || 0),
-            data_limite: document.getElementById('meta-prazo').value || null
-        };
-        if (await inserirRegistro('metas_compartilhadas', payload, 'Meta compartilhada criada.')) event.target.reset();
-    });
-    document.getElementById('form-divida').addEventListener('submit', async event => {
-        event.preventDefault();
-        const payload = {
-            nome: document.getElementById('divida-nome').value.trim(),
-            saldo_devedor: Number(document.getElementById('divida-saldo').value),
-            pagamento_mensal: Number(document.getElementById('divida-parcela').value)
-        };
-        if (await inserirRegistro('dividas', payload, 'Dívida cadastrada.')) event.target.reset();
+    document.getElementById('form-unificado').addEventListener('submit', submeterFormularioUnificado);
+    document.getElementById('tipo-operacao').addEventListener('change', () => alternarFormularioUnificado(true));
+    document.getElementById('botao-gerar-recorrencias').addEventListener('click', gerarRecorrenciasSelecionadas);
+    document.getElementById('botao-fechar-mes').addEventListener('click', fecharMesSelecionado);
+    document.getElementById('botao-fab').addEventListener('click', () => {
+        document.getElementById('tipo-operacao').value = 'transacao';
+        alternarFormularioUnificado();
+        limparFormulario();
+        abrirFormularioUnificado();
+        document.getElementById('descricao').focus();
     });
     document.getElementById('mes-filtro').addEventListener('change', () => {
         renderizarTransacoes();
         carregarDadosCompartilhados();
+        if (document.getElementById('tipo-operacao').value === 'planejamento') {
+            alternarFormularioUnificado();
+        }
     });
     document.getElementById('botao-notificacoes').addEventListener('click', async () => {
         if (!('Notification' in window)) {
@@ -1616,4 +1779,5 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     window.addEventListener('resize', atualizarDashboard);
+    alternarFormularioUnificado();
 });

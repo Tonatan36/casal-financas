@@ -1,14 +1,15 @@
-const CACHE_NAME = 'financas-casal-v7';
+const CACHE_NAME = 'financas-casal-v8';
 const APP_SHELL = [
     './',
     './index.html',
     './app.js',
+    './app-motion.js',
     './manifest.webmanifest',
     './icons/icon.svg',
     './icons/icon-192.png',
     './icons/icon-512.png'
 ];
-const EXTERNAL_SCRIPT_HOSTS = new Set(['cdn.tailwindcss.com', 'cdn.jsdelivr.net']);
+const EXTERNAL_SCRIPT_HOSTS = new Set(['cdn.tailwindcss.com', 'cdn.jsdelivr.net', 'esm.sh']);
 
 function updateCache(request, response) {
     return caches.open(CACHE_NAME)

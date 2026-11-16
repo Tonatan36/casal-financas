@@ -5,6 +5,7 @@ Aplicação web responsiva para acompanhar receitas e despesas compartilhadas. A
 ## Recursos
 
 - Lançamentos de receitas e despesas, filtros e exportação CSV.
+- Modal inteligente com um formulário único para lançamentos, planejamento, simulações e cadastros financeiros.
 - Dashboard com receitas, despesas, saldo, categorias e gráficos mensais.
 - Planejamento do mês com rendas de Ewerton e Blenda, renda familiar e despesas previstas.
 - Séries recorrentes mensais para salários e despesas. O app gera somente a competência solicitada, relaciona cada lançamento à sua série e usa uma chave única no banco para não duplicar ocorrências. As séries podem ser pausadas e retomadas.
@@ -59,7 +60,7 @@ As migrações adicionam as tabelas e colunas necessárias e incluem as tabelas 
 
 - A projeção de quitação de dívidas é uma estimativa simples baseada no saldo devedor dividido pelo pagamento mensal; não considera juros, multas ou amortização variável.
 - A senha numérica exibida na tela é apenas uma barreira visual implementada no cliente, não autentica o usuário no Supabase. O uso com dados financeiros reais deve ser protegido por autenticação Supabase e políticas RLS adequadas.
-- O app carrega Tailwind CSS e o cliente Supabase por CDN.
+- O app carrega Tailwind CSS, o cliente Supabase e React/Framer Motion por CDN. O painel principal usa `motion.div` para deslizar ao abrir.
 
 ## Validação local
 

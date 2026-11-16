@@ -13,6 +13,17 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Supabase JS Client -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="importmap">
+        {
+            "imports": {
+                "react": "https://esm.sh/react@18.3.1",
+                "react-dom": "https://esm.sh/react-dom@18.3.1?external=react",
+                "react-dom/client": "https://esm.sh/react-dom@18.3.1/client?external=react",
+                "react/jsx-runtime": "https://esm.sh/react@18.3.1/jsx-runtime",
+                "react/jsx-dev-runtime": "https://esm.sh/react@18.3.1/jsx-dev-runtime"
+            }
+        }
+    </script>
     <style>
         @media (max-width: 639px) {
             #app-conteudo {
@@ -128,6 +139,7 @@
     </div>
 
     <!-- CONTEÚDO PRINCIPAL -->
+    <div id="app-motion-root" class="flex flex-1 flex-col"></div>
     <div id="app-conteudo" class="hidden flex-1 flex flex-col max-w-5xl w-full mx-auto p-4 sm:p-6">
         
         <!-- CABEÇALHO -->
@@ -139,6 +151,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" data-install-app onclick="instalarAplicativo()" class="text-xs bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg transition">Instalar app</button>
+                    <button id="botao-abrir-formulario" type="button" aria-haspopup="dialog" aria-controls="modal-formulario" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-2 rounded-lg transition">Nova operação</button>
                     <button onclick="bloquearApp()" class="text-xs bg-slate-100 hover:bg-slate-200 text-slate-600 px-3 py-2 rounded-lg transition">Bloquear</button>
                 </div>
             </div>
@@ -148,7 +161,41 @@
             </nav>
         </header>
 
-        <div id="mensagem-app" role="status" aria-live="polite" class="hidden"></div>
+        <div id="mensagem-app" role="status" aria-live="polite" class="hidden" style="position: fixed; top: 1rem; left: 50%; z-index: 70; width: min(calc(100vw - 2rem), 42rem); transform: translateX(-50%);"></div>
+        <div id="modal-formulario" class="hidden fixed inset-0 z-[60] overflow-y-auto bg-slate-900/60 p-4" aria-hidden="true">
+            <div class="flex min-h-full items-center justify-center">
+                <section role="dialog" aria-modal="true" aria-labelledby="modal-titulo" class="w-full max-w-2xl rounded-2xl bg-white p-5 shadow-2xl sm:p-6">
+                    <div class="mb-4 flex items-start justify-between gap-4">
+                        <div>
+                            <h2 id="modal-titulo" class="text-lg font-bold text-slate-700">Formulário único inteligente</h2>
+                            <p id="modal-descricao" class="mt-1 text-xs text-slate-500">Escolha uma ação para exibir os campos correspondentes.</p>
+                        </div>
+                        <button id="botao-fechar-formulario" type="button" aria-label="Fechar formulário" class="rounded-lg px-3 py-2 text-slate-500 hover:bg-slate-100">Fechar</button>
+                    </div>
+                    <form id="form-unificado">
+                        <label for="tipo-operacao" class="mb-1 block text-xs font-medium text-slate-500">O que deseja fazer?</label>
+                        <div class="flex flex-col gap-2 sm:flex-row">
+                            <select id="tipo-operacao" class="min-w-0 flex-1 px-3 py-2 border rounded-lg text-sm">
+                                <option value="transacao">Novo lançamento</option>
+                                <option value="saldo-base">Atualizar saldo base</option>
+                                <option value="planejamento">Salvar planejamento mensal</option>
+                                <option value="simulador">Simular parcelas</option>
+                                <option value="recorrencia">Criar recorrência</option>
+                                <option value="orcamento">Salvar orçamento</option>
+                                <option value="cartao">Cadastrar cartão</option>
+                                <option value="conta">Adicionar conta a pagar/receber</option>
+                                <option value="meta-compartilhada">Criar meta compartilhada</option>
+                                <option value="divida">Cadastrar dívida</option>
+                                <option value="rateio">Salvar regra de rateio</option>
+                                <option value="fundo">Criar fundo sazonal</option>
+                            </select>
+                            <button id="botao-salvar" type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">Salvar lançamento</button>
+                        </div>
+                        <div id="campos-formulario-unificado" class="mt-4"></div>
+                    </form>
+                </section>
+            </div>
+        </div>
 
         <section id="painel-dashboard" role="tabpanel" aria-labelledby="aba-dashboard" tabindex="0">
          <!-- CARDS DE RESUMO -->
@@ -213,23 +260,22 @@
             <article class="bg-white p-5 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-slate-700 mb-1">Fluxo de caixa diário</h2>
                 <p class="text-xs text-slate-400 mb-3">Saldo estimado dia a dia, incluindo lançamentos e contas agendadas.</p>
-                <form id="form-saldo-base" class="mb-3 grid grid-cols-2 gap-2">
+                <div id="form-saldo-base" data-form-option="saldo-base" class="hidden mb-3 grid grid-cols-2 gap-2">
                     <label class="text-xs text-slate-500">Saldo real do caixa<input id="saldo-base-valor" required type="number" step="0.01" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
                     <label class="text-xs text-slate-500">Saldo conferido em<input id="saldo-base-data" required type="date" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
-                    <button class="col-span-2 rounded-lg bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700">Salvar saldo base</button>
-                </form>
+                </div>
                 <div id="fluxo-caixa-diario" class="max-h-64 space-y-1 overflow-y-auto text-xs" aria-live="polite"></div>
             </article>
         </section>
         <section class="bg-white p-5 rounded-2xl shadow-sm mb-6">
             <h2 class="font-bold text-slate-700 mb-1">Planejamento do mês</h2>
             <p class="text-xs text-slate-400 mb-3">Informe as rendas e despesas previstas para acompanhar o saldo familiar planejado.</p>
-            <form id="form-planejamento" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div id="form-planejamento" data-form-option="planejamento" class="hidden grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <label class="text-xs text-slate-500">Renda Ewerton<input id="planejamento-ewerton" type="number" min="0" step="0.01" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
                 <label class="text-xs text-slate-500">Renda Blenda<input id="planejamento-blenda" type="number" min="0" step="0.01" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
                 <label class="text-xs text-slate-500">Despesas previstas<input id="planejamento-despesas" type="number" min="0" step="0.01" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
-                <div class="flex flex-col justify-end gap-2"><p class="text-xs text-slate-500">Renda familiar: <strong id="renda-familiar" class="text-slate-700">R$ 0,00</strong></p><p class="text-xs text-slate-500">Saldo planejado: <strong id="saldo-planejado" class="text-indigo-700">R$ 0,00</strong></p><button class="bg-indigo-600 text-white px-3 py-2 rounded-lg text-sm font-semibold">Salvar planejamento</button></div>
-            </form>
+                <div class="flex flex-col justify-end gap-2"><p class="text-xs text-slate-500">Renda familiar: <strong id="renda-familiar" class="text-slate-700">R$ 0,00</strong></p><p class="text-xs text-slate-500">Saldo planejado: <strong id="saldo-planejado" class="text-indigo-700">R$ 0,00</strong></p></div>
+            </div>
             <div class="mt-4 border-t pt-3">
                 <p id="status-fechamento" class="text-xs text-slate-500 mb-2">Mês aberto para edição.</p>
                 <button id="botao-fechar-mes" type="button" class="bg-slate-100 text-slate-700 px-3 py-2 rounded-lg text-sm font-semibold">Fechar mês selecionado</button>
@@ -238,20 +284,19 @@
         <section class="bg-white p-5 rounded-2xl shadow-sm mb-6">
             <h2 class="font-bold text-slate-700 mb-1">Simulador de parcelas — “E se?”</h2>
             <p class="text-xs text-slate-400 mb-3">Veja o impacto nos orçamentos antes de registrar uma compra. A simulação não cria lançamentos.</p>
-            <form id="form-simulador" class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div id="form-simulador" data-form-option="simulador" class="hidden grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <label class="text-xs text-slate-500">Valor total<input id="simulador-valor" required type="number" min="0.01" step="0.01" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
                 <label class="text-xs text-slate-500">Parcelas<input id="simulador-parcelas" required type="number" min="2" max="120" value="2" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
                 <label class="text-xs text-slate-500">Categoria<select id="simulador-categoria" class="mt-1 w-full px-3 py-2 border rounded-lg"><option>Moradia</option><option>Alimentação</option><option>Transporte</option><option>Saúde</option><option>Educação</option><option>Lazer</option><option>Contas</option><option>Compras</option><option>Outros</option></select></label>
                 <label class="text-xs text-slate-500">1ª parcela<input id="simulador-inicio" required type="date" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
-                <button class="col-span-2 sm:col-span-4 bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Simular impacto</button>
-            </form>
-            <div id="resultado-simulador" class="mt-3 space-y-2 text-sm" aria-live="polite"></div>
+            </div>
+            <div id="resultado-simulador" data-form-result="simulador" class="hidden mt-3 space-y-2 text-sm" aria-live="polite"></div>
         </section>
         <section class="grid lg:grid-cols-2 gap-4 mb-6">
             <article class="bg-white p-5 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-slate-700 mb-1">Recorrências inteligentes</h2>
                 <p class="text-xs text-slate-400 mb-3">Crie uma série mensal para salário ou despesa fixa. O app gera somente o mês selecionado e não duplica lançamentos já criados.</p>
-                <form id="form-recorrencia" class="grid grid-cols-2 gap-2 mb-3">
+                <div id="form-recorrencia" data-form-option="recorrencia" class="hidden grid grid-cols-2 gap-2 mb-3">
                     <input id="recorrencia-descricao" required placeholder="Ex.: Salário, aluguel" class="px-3 py-2 border rounded-lg text-sm">
                     <input id="recorrencia-valor" required type="number" min="0.01" step="0.01" placeholder="Valor (R$)" class="px-3 py-2 border rounded-lg text-sm">
                     <select id="recorrencia-tipo" class="px-3 py-2 border rounded-lg text-sm"><option value="despesa">Despesa</option><option value="receita">Receita</option></select>
@@ -263,69 +308,63 @@
                     <label class="text-xs text-slate-500">Primeiro mês<input id="recorrencia-inicio" required type="date" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
                     <label class="text-xs text-slate-500">Dia do lançamento<input id="recorrencia-dia" required type="number" min="1" max="31" placeholder="Dia" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
                     <label class="col-span-2 text-xs text-slate-500">Último mês (opcional)<input id="recorrencia-fim" type="date" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
-                    <button class="col-span-2 bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Criar recorrência mensal</button>
-                </form>
+                </div>
                 <button id="botao-gerar-recorrencias" type="button" class="text-xs text-indigo-600 font-semibold mb-3">Gerar recorrências do mês selecionado</button>
                 <div id="lista-recorrencias" class="space-y-2 text-sm"></div>
             </article>
             <article class="bg-white p-5 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-slate-700 mb-1">Orçamento mensal por categoria</h2>
                 <p class="text-xs text-slate-400 mb-3">Acompanhe os gastos do mês selecionado. O aviso aparece ao atingir 80% do limite.</p>
-                <form id="form-orcamento" class="grid grid-cols-2 gap-2 mb-3">
+                <div id="form-orcamento" data-form-option="orcamento" class="hidden grid grid-cols-2 gap-2 mb-3">
                     <select id="orcamento-categoria" class="px-3 py-2 border rounded-lg text-sm">
                         <option value="Moradia">Moradia</option><option value="Alimentação">Alimentação</option><option value="Transporte">Transporte</option><option value="Saúde">Saúde</option><option value="Educação">Educação</option><option value="Lazer">Lazer</option><option value="Contas">Contas</option><option value="Compras">Compras</option><option value="Outros">Outros</option>
                     </select>
                     <input id="orcamento-limite" required type="number" min="0.01" step="0.01" placeholder="Limite (R$)" class="px-3 py-2 border rounded-lg text-sm">
-                    <button class="col-span-2 bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Salvar orçamento do mês</button>
-                </form>
+                </div>
                 <div id="lista-orcamentos" aria-live="polite" class="space-y-3 text-sm"></div>
             </article>
         </section>
         <section class="grid lg:grid-cols-2 gap-4 mb-6">
             <article class="bg-white p-5 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-slate-700 mb-3">Cartões e faturas</h2>
-                <form id="form-cartao" class="grid grid-cols-2 gap-2 mb-4">
+                <div id="form-cartao" data-form-option="cartao" class="hidden grid grid-cols-2 gap-2 mb-4">
                     <input id="novo-cartao-nome" required placeholder="Nome do cartão" class="px-3 py-2 border rounded-lg text-sm">
                     <input id="novo-cartao-limite" required type="number" min="0.01" step="0.01" placeholder="Limite total (R$)" class="px-3 py-2 border rounded-lg text-sm">
                     <label class="text-xs text-slate-500">Fechamento<input id="novo-cartao-fechamento" required type="number" min="1" max="31" placeholder="Dia" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
                     <label class="text-xs text-slate-500">Vencimento<input id="novo-cartao-vencimento" required type="number" min="1" max="31" placeholder="Dia" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
-                    <button class="col-span-2 bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Cadastrar cartão</button>
-                </form>
+                </div>
                 <div id="lista-cartoes" class="space-y-2 text-sm"></div>
             </article>
             <article class="bg-white p-5 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-slate-700 mb-3">Contas a pagar e receber</h2>
                 <p id="aviso-vencimentos" class="text-xs text-amber-700 mb-2"></p>
                 <button id="botao-notificacoes" type="button" class="text-xs text-indigo-600 font-semibold mb-2">Ativar lembretes do navegador</button>
-                <form id="form-conta" class="grid grid-cols-2 gap-2 mb-4">
+                <div id="form-conta" data-form-option="conta" class="hidden grid grid-cols-2 gap-2 mb-4">
                     <input id="conta-descricao" required placeholder="Ex.: Aluguel, energia" class="px-3 py-2 border rounded-lg text-sm">
                     <input id="conta-valor" required type="number" min="0.01" step="0.01" placeholder="Valor (R$)" class="px-3 py-2 border rounded-lg text-sm">
                     <input id="conta-vencimento" required type="date" class="px-3 py-2 border rounded-lg text-sm">
                     <select id="conta-tipo" class="px-3 py-2 border rounded-lg text-sm"><option value="despesa">A pagar</option><option value="receita">A receber</option></select>
                     <label class="col-span-2 flex items-center gap-2 text-xs text-slate-500"><input id="conta-fixa" type="checkbox"> Repetir mensalmente</label>
-                    <button class="col-span-2 bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Adicionar à agenda</button>
-                </form>
+                </div>
                 <div id="agenda-contas" class="space-y-2 text-sm"></div>
             </article>
             <article class="bg-white p-5 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-slate-700 mb-3">Metas compartilhadas</h2>
-                <form id="form-meta-compartilhada" class="grid grid-cols-2 gap-2 mb-4">
+                <div id="form-meta-compartilhada" data-form-option="meta-compartilhada" class="hidden grid grid-cols-2 gap-2 mb-4">
                     <input id="meta-nome" required placeholder="Ex.: Viagem, reserva" class="px-3 py-2 border rounded-lg text-sm">
                     <input id="meta-alvo" required type="number" min="0.01" step="0.01" placeholder="Valor da meta (R$)" class="px-3 py-2 border rounded-lg text-sm">
                     <input id="meta-atual" required type="number" min="0" step="0.01" value="0" placeholder="Já guardado (R$)" class="px-3 py-2 border rounded-lg text-sm">
                     <label class="col-span-2 text-xs text-slate-500">Prazo para atingir<input id="meta-prazo" type="date" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
-                    <button class="bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Criar meta</button>
-                </form>
+                </div>
                 <div id="lista-metas" class="space-y-3 text-sm"></div>
             </article>
             <article class="bg-white p-5 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-slate-700 mb-3">Dívidas e financiamentos</h2>
-                <form id="form-divida" class="grid grid-cols-2 gap-2 mb-4">
+                <div id="form-divida" data-form-option="divida" class="hidden grid grid-cols-2 gap-2 mb-4">
                     <input id="divida-nome" required placeholder="Descrição" class="px-3 py-2 border rounded-lg text-sm">
                     <input id="divida-saldo" required type="number" min="0.01" step="0.01" placeholder="Saldo devedor (R$)" class="px-3 py-2 border rounded-lg text-sm">
                     <input id="divida-parcela" required type="number" min="0.01" step="0.01" placeholder="Pagamento mensal (R$)" class="px-3 py-2 border rounded-lg text-sm">
-                    <button class="bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Cadastrar dívida</button>
-                </form>
+                </div>
                 <div id="lista-dividas" class="space-y-2 text-sm"></div>
                 <p id="projecao-mes" class="text-xs text-indigo-700 mt-3"></p>
             </article>
@@ -334,32 +373,27 @@
             <article class="bg-white p-5 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-slate-700 mb-1">Regras de rateio por categoria</h2>
                 <p class="text-xs text-slate-400 mb-3">Define como despesas novas serão divididas. A renda proporcional usa o planejamento do mês selecionado.</p>
-                <form id="form-rateio" class="grid grid-cols-2 gap-2 mb-3">
+                <div id="form-rateio" data-form-option="rateio" class="hidden grid grid-cols-2 gap-2 mb-3">
                     <select id="rateio-categoria" class="px-3 py-2 border rounded-lg text-sm"><option>Moradia</option><option>Alimentação</option><option>Transporte</option><option>Saúde</option><option>Educação</option><option>Lazer</option><option>Contas</option><option>Compras</option><option>Outros</option></select>
                     <select id="rateio-regra" class="px-3 py-2 border rounded-lg text-sm"><option value="igual">50/50</option><option value="proporcional">Proporcional à renda</option><option value="individual_ewerton">Individual — Ewerton</option><option value="individual_blenda">Individual — Blenda</option></select>
-                    <button class="col-span-2 bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Salvar regra</button>
-                </form>
+                </div>
                 <div id="lista-rateios" class="space-y-2 text-sm"></div>
             </article>
             <article class="bg-white p-5 rounded-2xl shadow-sm">
                 <h2 class="font-bold text-slate-700 mb-1">Fundos sazonais</h2>
                 <p class="text-xs text-slate-400 mb-3">Reserve mensalmente para despesas previsíveis ao longo do ano.</p>
-                <form id="form-fundo" class="grid grid-cols-2 gap-2 mb-3">
+                <div id="form-fundo" data-form-option="fundo" class="hidden grid grid-cols-2 gap-2 mb-3">
                     <input id="fundo-nome" required placeholder="Ex.: IPVA, IPTU" class="px-3 py-2 border rounded-lg text-sm">
                     <input id="fundo-alvo" required type="number" min="0.01" step="0.01" placeholder="Valor necessário (R$)" class="px-3 py-2 border rounded-lg text-sm">
                     <label class="col-span-2 text-xs text-slate-500">Data prevista<input id="fundo-prazo" required type="date" class="mt-1 w-full px-3 py-2 border rounded-lg"></label>
-                    <button class="col-span-2 bg-indigo-50 text-indigo-700 px-3 py-2 rounded-lg text-sm font-semibold">Criar fundo</button>
-                </form>
+                </div>
                 <div id="lista-fundos" class="space-y-2 text-sm"></div>
             </article>
         </section>
         </section>
 
         <section id="painel-lancamentos" role="tabpanel" aria-labelledby="aba-lancamentos" tabindex="0" class="hidden">
-        <!-- FORMULÁRIO DE ADIÇÃO -->
-        <div class="bg-white p-5 rounded-2xl shadow-sm mb-6">
-            <h2 class="text-sm font-bold text-slate-700 mb-3">Novo Lançamento</h2>
-            <form id="form-transacao" onsubmit="adicionarTransacao(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div id="form-transacao" data-form-option="transacao" class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 
                 <input type="text" id="descricao" placeholder="Descrição (ex: Aluguel, Supermercado)" required class="px-3 py-2 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 
@@ -428,11 +462,9 @@
                 </div>
 
                 <div class="sm:col-span-3 flex gap-2 mt-2">
-                    <button id="botao-salvar" type="submit" class="flex-1 bg-indigo-600 text-white font-semibold py-2.5 rounded-xl text-sm hover:bg-indigo-700 transition">Salvar Transação</button>
                     <button id="botao-cancelar-edicao" type="button" class="hidden bg-slate-100 text-slate-700 font-semibold py-2.5 px-4 rounded-xl text-sm">Cancelar edição</button>
                 </div>
-            </form>
-        </div>
+            </div>
 
         <!-- LISTA DE TRANSAÇÕES -->
         <div class="bg-white p-5 rounded-2xl shadow-sm flex-1">
@@ -493,6 +525,7 @@
 
     <!-- Script principal -->
     <script src="app.js"></script>
+    <script type="module" src="app-motion.js"></script>
     <script>
         const abas = [...document.querySelectorAll('[role="tab"][data-tab]')];
         const paineis = [...document.querySelectorAll('[role="tabpanel"]')];
